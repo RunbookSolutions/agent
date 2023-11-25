@@ -1,1 +1,6 @@
-docker run -it $(docker build -q .)
+docker run \
+    -v ./:/app \
+    -v ./hosts:/etc/hosts \
+    -v $(pwd)/kerberos/krb5.conf:/etc/krb5.conf \
+    -v $(pwd)/kerberos:/keytabs \
+    -it $(docker build -q .)

@@ -1,28 +1,25 @@
-# app.py
-import asyncio
-from agent.agent import Agent
-import configparser
+
+import logging
+from runbooksolutions.logging_setup import setup_logging
+setup_logging()
+
+
+from runbooksolutions.store.Store import Store
+# Set the Data Store(s) Password
+Store.set_encryption_key(b"Store_Encryption_Password")
+from runbooksolutions.agent.Agent import Agent
 
 async def main():
-    agent = Agent()
-
-    config = configparser.ConfigParser()
-    config.read('plugins.ini')
-
-    for section_name in config.sections():
-        plugin = {}
-        plugin['name'] = section_name
-        plugin['options'] = dict(config.items(section_name))
-        if config.getboolean(section_name, 'enabled'):
-            await agent.add_plugin_by_name(plugin)
-
+    agent = Agent(num_threads=3)
     try:
+        agent.schedule.add_task({"key": "value"}, "* * * * *")
+
+        #await agent.queue.enqueue_task({"test": "Value"})
         await agent.start()
     except KeyboardInterrupt:
-        print("Ctrl+C pressed. Stopping the agent...")
+        logging.info("Received CTRL+C. Stopping gracefully.")
         await agent.stop()
-    except asyncio.CancelledError:
-        pass
 
+import asyncio
 if __name__ == "__main__":
     asyncio.run(main())

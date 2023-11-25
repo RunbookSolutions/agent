@@ -1,5 +1,4 @@
-apscheduler
-gql
 requests
-requests_toolbelt
-python-nmap
+cryptography
+colorlog
+croniter
