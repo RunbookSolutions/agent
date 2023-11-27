@@ -1,4 +1,5 @@
 from runbooksolutions.queue.Queue import Queue
+from runbooksolutions.agent.Task import Task
 from datetime import datetime
 from croniter import croniter
 import asyncio
@@ -11,32 +12,14 @@ class Schedule:
         self.queue = queue
         self.tasks = []
 
-    def add_task(self, task: dict, cron_expression: str) -> None:
-        logging.debug("Added Task")
-        self.tasks.append((task, cron_expression))
+    def add_task(self, task: Task, cron_expression: str) -> None:
+        task_id = task.id
+        if not self._is_task_in_schedule(task_id):
+            logging.debug("Added Task")
+            self.tasks.append((task, cron_expression))
+        else:
+            logging.warning("Task already Scheduled")
 
-    # async def start(self) -> None:
-    #     logging.debug("Schedule Started")
-    #     while True:
-    #         current_time = datetime(
-    #                               datetime.now().year, 
-    #                               datetime.now().month,
-    #                               datetime.now().day, 
-    #                               datetime.now().hour, 
-    #                               datetime.now().minute, 
-    #                               datetime.now().second
-    #                             )
-    #         for task, cron_expression in self.tasks:
-    #             cron = croniter(cron_expression, current_time)
-    #             next_run_time = cron.get_next(datetime)
-    #             last_run_time = cron.get_prev(datetime)
-    #             logging.debug(f"Current Time: {current_time}, Next Run Time: {next_run_time}")
-    #             if next_run_time == current_time or current_time == last_run_time:
-    #                 logging.info("Queuing Task")
-    #                 await self.queue.enqueue_task(task)
-    #             else:
-    #                 logging.debug("Not Time")
-    #         await asyncio.sleep(1)
     async def start(self) -> None:
         logging.debug("Schedule Started")
         while True:
@@ -55,3 +38,9 @@ class Schedule:
         tdp, tdt = cron.get_current(), cron.get_prev()
         precision_in_seconds = 1
         return (max(tdp, tdt) - min(tdp, tdt)) < precision_in_seconds
+    
+    def _is_task_in_schedule(self, task_id: str) -> bool:
+        for task, _ in self.tasks:
+            if task.id == task_id:
+                return True
+        return False

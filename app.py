@@ -12,9 +12,6 @@ from runbooksolutions.agent.Agent import Agent
 async def main():
     agent = Agent(num_threads=3)
     try:
-        agent.schedule.add_task({"key": "value"}, "* * * * *")
-
-        #await agent.queue.enqueue_task({"test": "Value"})
         await agent.start()
     except KeyboardInterrupt:
         logging.info("Received CTRL+C. Stopping gracefully.")

@@ -1,4 +1,5 @@
 from runbooksolutions.agent.PluginManager import PluginManager
+from runbooksolutions.agent.Task import Task
 from threading import Event
 import logging
 import asyncio
@@ -26,10 +27,14 @@ class Queue:
                 logging.error(e)
                 pass  # Handle exceptions as needed
 
-    def execute_task(self, task: dict) -> None:
+    def execute_task(self, task: Task) -> None:
+
+        command = task.command
+        arguments = task.getArguments()
+
         # Implement your task execution logic here
-        logging.error(f"Running Task {task}")
-        self.pluginManager.executeCommand('lol', 2)
+        logging.info(f"Running Task \'{command}\' with arguments {arguments}")
+        self.pluginManager.executeCommand(command, **arguments)
         pass
 
     async def start(self) -> None:
@@ -46,6 +51,16 @@ class Queue:
     def stop(self) -> None:
         self.stop_event.set()
 
-    async def enqueue_task(self, task: dict) -> None:
-        logging.debug("Enqueued Task")
-        await self.task_queue.put(task)
+    async def enqueue_task(self, task: Task) -> None:
+        task_id = task.id
+        if not self._is_task_in_queue(task_id):
+            logging.debug("Enqueued Task")
+            await self.task_queue.put(task)
+        else:
+            logging.warning("Task already in Queue.")
+
+    def _is_task_in_queue(self, task_id: str) -> bool:
+        for task in self.task_queue._queue:
+            if task.id == task_id:
+                return True
+        return False

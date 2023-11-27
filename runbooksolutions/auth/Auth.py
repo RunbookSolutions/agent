@@ -6,11 +6,16 @@ import requests
 import time
 
 class Auth:
+    url: str
+    client_id: str
     deviceCode: DeviceCode = None
     accessToken: AccessToken = None
 
-    def __init__(self) -> None:
+    def __init__(self, url: str, client_id: str) -> None:
         logging.debug("Starting Authentication")
+
+        self.url = url
+        self.client_id = client_id
 
         self.deviceCode = DeviceCode.load_from_store()
         self.accessToken = AccessToken.load_from_store()
@@ -36,11 +41,11 @@ class Auth:
     def getDeviceCode(self) -> None:
         logging.debug("Getting a device code.")
         myobj = {
-            'client_id': '9aa3c276-93c3-4255-b148-086fa9bc3224',
+            'client_id': self.client_id,
             'grant_type': 'urn:ietf:params:oauth:grant-type:device_code',
             'scope': ''
         }
-        url = "http://192.168.1.197/oauth/device/code"
+        url = f"{self.url}/oauth/device/code"
 
         try:
             response = requests.post(url, json=myobj)
@@ -63,11 +68,11 @@ class Auth:
                 self.getDeviceCode()
             try:
                 myobj = {
-                    'client_id': '9aa3c276-93c3-4255-b148-086fa9bc3224',
+                    'client_id': self.client_id,
                     'grant_type': 'urn:ietf:params:oauth:grant-type:device_code',
                     'device_code': self.deviceCode.getDeviceCode()
                 }
-                url = "http://192.168.1.197/oauth/token"
+                url = f"{self.url}/oauth/token"
 
                 logging.debug(myobj)
 
