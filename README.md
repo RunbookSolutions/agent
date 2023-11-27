@@ -176,6 +176,10 @@ For those implementing a custom backend for the Agent, it's crucial to provide t
 
 Understanding these API requests empowers users to integrate the RunbookSolution Agent seamlessly into their infrastructure or develop custom functionalities, enhancing the overall capabilities of the system.
 
+For additional information about the expected responses refer to the [Expected Server Responses](docs/Responses.md) page.
+
+> Note: A Proof-of-Concept backend is available in the [agent_backend](https://github.com/RunbookSolutions/agent_backend) repository.
+
 ## Additional Notes
 
 ### Creating a Keytab File
