@@ -22,7 +22,7 @@ docker run \
     -v $(pwd)/kerberos:/keytabs \
     -d \
     --restart unless-stopped \
-    runbooksolutions/image_agent:latest
+    runbooksolutions/agent:latest
 
 ```
 
