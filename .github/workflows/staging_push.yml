@@ -27,3 +27,20 @@ jobs:
         with:
           push: true
           tags: runbooksolutions/agent:dev
+  pyinstaller-build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Build and Publish Executable
+        uses: sayyid5416/pyinstaller@v1
+        with:
+          python_ver: '3.8'  # Adjust the Python version as needed
+          spec: 'app.py'  # Adjust the path to your .spec or .py file
+          requirements: 'requirements.txt'  # Adjust the path to your requirements.txt file
+          upload_exe_with_name: 'RBSAgent'  # Adjust the desired artifact name
+          options: --onefile, --name "RBSAgent", --windowed
