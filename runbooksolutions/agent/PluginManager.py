@@ -1,5 +1,6 @@
 from runbooksolutions.agent.Plugin import Plugin
 from runbooksolutions.agent.API import API
+from runbooksolutions.agent.Task import Task
 import json
 import logging
 import os
@@ -149,7 +150,7 @@ class PluginManager:
 
             self.loadedCommands.update({command_name: modified_command})
 
-    def executeCommand(self, commandName, *args, **kwargs) -> None:
+    def executeCommand(self, task: Task, commandName: str, *args, **kwargs) -> None:
         if not self.commandIsLoaded(commandName):
             logging.critical(f"Tried to call {commandName} when it wasn't loaded")
             return
@@ -159,6 +160,7 @@ class PluginManager:
 
         function_to_call = getattr(self.plugins.get(pluginID), function_name, None)
         if callable(function_to_call):
-            function_to_call(*args, **kwargs)
+            result = function_to_call(*args, **kwargs)
+            self.api.sendTaskResult(task, result)
         else:
             print(f"Function {function_name} not found in plugin {pluginID}.")
