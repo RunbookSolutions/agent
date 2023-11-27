@@ -48,5 +48,5 @@ jobs:
           python_ver: '3.9'  # Adjust the Python version as needed
           spec: 'app.py'  # Adjust the path to your .spec or .py file
           requirements: 'requirements.txt'  # Adjust the path to your requirements.txt file
-          upload_exe_with_name: 'RBSAgent'  # Adjust the desired artifact name
+          upload_exe_with_name: ${{matrix.output}}  # Adjust the desired artifact name
           options: --onefile, --name "RBSAgent", --windowed
