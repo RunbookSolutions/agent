@@ -4,9 +4,11 @@
 >> In non-NAT'ed environments; the backend server could use the IP address from the request to identify agents.
 
 ## `GET /api/agent`
+
 This endpoint provides the agent with basic information about itself along with a list of PLUGIN_ID's that the agent should have loaded.
 
 - The Team ID provided here is used to identify and group agents to specific groups on the backend. It is **required** even if not used.
+
 
 ```json
 {
@@ -28,7 +30,7 @@ This endpoint provides the agent with individual plugins for the agent along wit
 
 - The `script` variable contains the code the agent will execute when required.
 - The `hash` variable is the `SHA512` hash of the script; the agent will verify both the script variable as well as the file it creates to store the plugin.
-- The `commands` variable contains contains the details of what function in the program to run for which command is provided.
+- The `commands` variable contains the details of what function in the program to run for which command is provided.
 
 > Important: Both the `script` variable and the file written to disk must match the provided hash for the plugin to be loaded and run.
 
@@ -62,7 +64,7 @@ The following endpoint provides the agent with details of what commands need to 
 
 - The `command` variable must match one of the keys provided by the `plugin.commands` variable when downloading plugins.
 - The `cron` variable is the cron formatted schedule for when the task runs, or `null` if it should only be run once.
-- The `arguments` variable should be a JSON encoded string containg the arument name and values for the function to run.
+- The `arguments` variable should be a JSON encoded string containing the argument name and values for the function to run.
 
 > Note: The agent uses the `task.id` to ensure tasks are not being duplicated into the schedule and queue.
 
