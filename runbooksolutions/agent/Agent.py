@@ -19,7 +19,11 @@ class Agent:
 
     def __init__(self, num_threads: int = 1) -> None:
         self.agentConfig = self.loadConfig()
-        self.auth = Auth(url=self.agentConfig.get('server_url'), client_id=self.agentConfig.get('client_id'))
+        self.auth = Auth(
+            url=self.agentConfig.get('server_url'), 
+            client_id=self.agentConfig.get('client_id'),
+            enabled=self.agentConfig.get('auth')
+        )
         self.api = API(auth=self.auth, url=self.agentConfig.get('server_url'))
         self.pluginManager = PluginManager(self.api)
         self.queue = Queue(num_threads, self.pluginManager)

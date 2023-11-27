@@ -20,7 +20,7 @@ COPY requirements.txt /app
 RUN pip install -r requirements.txt
 
 COPY app.py /app
-COPY runbooksolutions /app
+COPY runbooksolutions /app/runbooksolutions
 
 # Define the command to run your application
 CMD [ "/start.sh" ]

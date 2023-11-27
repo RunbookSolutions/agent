@@ -1,6 +1,13 @@
 # Responses From Backend
 
-GET /api/agent
+> Note: The backend server is expected to identify the agent making the request without any additional parameters being sent. By default RunbookSolutions achieves this using the OAuth Device Code process to retrieve an Access Token for authentication.
+>> In non-NAT'ed environments; the backend server could use the IP address from the request to identify agents.
+
+## `GET /api/agent`
+This endpoint provides the agent with basic information about itself along with a list of PLUGIN_ID's that the agent should have loaded.
+
+- The Team ID provided here is used to identify and group agents to specific groups on the backend. It is **required** even if not used.
+
 ```json
 {
 	"data": {
@@ -14,7 +21,17 @@ GET /api/agent
 }
 ```
 
-GET /api/agent/plugin/{plugin_id}
+## `GET /api/agent/plugin/{plugin_id}`
+This endpoint provides the agent with individual plugins for the agent along with the corresponding commands the plugin makes available.
+
+> Note: It is important to note that two different versions of a plugin may be loaded by an agent. Commands are prefixed with the PLUGIN_ID to avoid collisions.
+
+- The `script` variable contains the code the agent will execute when required.
+- The `hash` variable is the `SHA512` hash of the script; the agent will verify both the script variable as well as the file it creates to store the plugin.
+- The `commands` variable contains contains the details of what function in the program to run for which command is provided.
+
+> Important: Both the `script` variable and the file written to disk must match the provided hash for the plugin to be loaded and run.
+
 ```json
 {
 	"data": {
@@ -40,7 +57,15 @@ GET /api/agent/plugin/{plugin_id}
 }
 ```
 
-GET /api/agent/tasks
+## `GET /api/agent/tasks`
+The following endpoint provides the agent with details of what commands need to be run, when (if scheduled), and any arguments for said command.
+
+- The `command` variable must match one of the keys provided by the `plugin.commands` variable when downloading plugins.
+- The `cron` variable is the cron formatted schedule for when the task runs, or `null` if it should only be run once.
+- The `arguments` variable should be a JSON encoded string containg the arument name and values for the function to run.
+
+> Note: The agent uses the `task.id` to ensure tasks are not being duplicated into the schedule and queue.
+
 ```json
 {
 	"data": [

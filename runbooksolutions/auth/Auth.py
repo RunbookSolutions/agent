@@ -8,14 +8,18 @@ import time
 class Auth:
     url: str
     client_id: str
+    enabled: bool = True
     deviceCode: DeviceCode = None
     accessToken: AccessToken = None
 
-    def __init__(self, url: str, client_id: str) -> None:
-        logging.debug("Starting Authentication")
-
+    def __init__(self, url: str, client_id: str, enabled: bool = True) -> None:
         self.url = url
         self.client_id = client_id
+        self.enabled = enabled
+
+        logging.debug("Starting Authentication")
+        if not self.enabled:
+            return
 
         self.deviceCode = DeviceCode.load_from_store()
         self.accessToken = AccessToken.load_from_store()
@@ -32,6 +36,11 @@ class Auth:
         logging.debug("Finished Authentication")
 
     def getHeaders(self) -> dict:
+        if not self.enabled:
+            return {
+                'Content-Type': 'application/json',
+            }
+        
         headers = {
             'Authorization': f'Bearer {self.accessToken.getAccessToken()}',
             'Content-Type': 'application/json',
