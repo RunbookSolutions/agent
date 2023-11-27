@@ -1,8 +1,6 @@
 kerberos
 run
 OLD
-stores
 hosts
 test.py
-plugins
 __pycache__

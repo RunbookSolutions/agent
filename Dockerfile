@@ -8,6 +8,8 @@ RUN apt-get update && \
 # Set the working directory to /app
 WORKDIR /app
 
+RUN mkdir plugins,stores
+
 COPY _docker/start.sh /start.sh
 RUN chmod +x /start.sh
 
@@ -17,7 +19,8 @@ COPY requirements.txt /app
 # Install any needed packages specified in requirements.txt
 RUN pip install -r requirements.txt
 
-COPY . /app
+COPY app.py /app
+COPY runbooksolutions /app
 
 # Define the command to run your application
 CMD [ "/start.sh" ]
