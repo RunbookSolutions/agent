@@ -25,10 +25,10 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       -
-        name: Build and push
-        uses: docker/build-push-action@v5
-        with:
-          push: true
-          tags: |
-            runbooksolutions/agent:latest
-            ${{ github.event_name == 'release' && github.ref ? 'runbooksolutions/agent:' + github.ref : '' }}
+        name: Build and push latest
+        if: github.event_name == 'push'
+        run: docker/build-push-action@v5 --push --tag runbooksolutions/agent:latest .
+      -
+        name: Build and push tag
+        if: github.event_name == 'release' && github.ref
+        run: docker/build-push-action@v5 --push --tag runbooksolutions/agent:${{ github.event.release.tag_name }} .
