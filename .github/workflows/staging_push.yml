@@ -31,7 +31,13 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-latest, ubuntu-latest, macos-latest]
+        include:
+          - os: windows-latest
+            output: RBSAgent.exe
+          - os: ubuntu-latest
+            output: RBSAgent
+          - os: macos-latest
+            output: RBSAgent.app
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
