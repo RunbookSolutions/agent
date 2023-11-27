@@ -1,9 +1,9 @@
-name: Dev
+name: Release Created
 
 on:
-  push:
-    branches:
-      - 'staging'
+  release:
+    types:
+      - created
 
 jobs:
   docker:
@@ -26,4 +26,4 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           push: true
-          tags: runbooksolutions/agent:dev
+          tags: runbooksolutions/agent:latest, runbooksolutions/agent:${{ github.event.release.tag_name }}
