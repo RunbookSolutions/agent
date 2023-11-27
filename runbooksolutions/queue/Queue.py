@@ -34,7 +34,7 @@ class Queue:
 
         # Implement your task execution logic here
         logging.info(f"Running Task \'{command}\' with arguments {arguments}")
-        self.pluginManager.executeCommand(command, **arguments)
+        self.pluginManager.executeCommand(task, command, **arguments)
         pass
 
     async def start(self) -> None:

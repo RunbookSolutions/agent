@@ -43,6 +43,13 @@ class API:
     
     def getAgentTasks(self) -> AgentTasks:
         return AgentTasks(self.sendRequest('/agent/tasks', 'GET'))
+    
+    def sendTaskResult(self, task: Task, result: any):
+        self.sendRequest(
+            f'/agent/task/{task.id}',
+            'POST',
+            {'data':result}
+        )
 
     def sendRequest(self, url, method, data=None):
         url = self.url + url
@@ -62,7 +69,7 @@ class API:
             raise ValueError("Invalid HTTP method. Supported methods are GET, POST, PUT, and DELETE.")
 
         # You might want to handle response status codes and raise exceptions if needed
-        if response.status_code != 200:
+        if response.status_code != 200 and response.status_code != 201:
             raise Exception(f"Request failed with status code {response.status_code}. Response content: {response.text}")
 
         return response.json()  # Assuming the response is in JSON format
