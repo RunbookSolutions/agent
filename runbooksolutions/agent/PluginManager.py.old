@@ -1,0 +1,126 @@
+import importlib
+import json
+import requests
+import hashlib
+import os
+
+class PluginManager:
+    def __init__(self, plugin_directory="plugins"):
+        self.plugin_directory = plugin_directory
+        self.loaded_plugins = {}
+        self.available_commands = set()
+
+    def load_plugin(self, plugin_name, plugin_url=None):
+        if plugin_name in self.loaded_plugins:
+            print(f"Plugin {plugin_name} is already loaded.")
+            return
+
+        # If plugin is not available locally, perform HTTP request to get it
+        if plugin_url:
+            response = requests.get(plugin_url)
+            if response.status_code == 200:
+                plugin_data = response.json()
+                # Verify the integrity of the received plugin using hash
+                if self.verify_plugin_hash(plugin_data):
+                    self.save_plugin_locally(plugin_name, plugin_data)
+                    self.update_available_commands(plugin_data)
+                    self.loaded_plugins[plugin_name] = self.import_plugin(plugin_name)
+                    print(f"Plugin {plugin_name} loaded successfully.")
+                else:
+                    print("Plugin integrity verification failed. Aborting.")
+            else:
+                print(f"Failed to fetch plugin {plugin_name}. HTTP Error {response.status_code}.")
+        else:
+            print(f"Local copy of plugin {plugin_name} not found and no URL provided.")
+
+    def sync_plugins(self, plugin_list):
+        # Unload plugins not in the provided list
+        plugins_to_unload = set(self.loaded_plugins.keys()) - set(plugin_list)
+        for plugin_name in plugins_to_unload:
+            self.unload_plugin(plugin_name)
+
+        # Load plugins in the provided list
+        for plugin_name in plugin_list:
+            if self.is_command_available(plugin_name):
+                self.load_plugin(plugin_name)
+
+    def unload_plugin(self, plugin_name):
+        if plugin_name in self.loaded_plugins:
+            del self.loaded_plugins[plugin_name]
+            print(f"Plugin {plugin_name} unloaded successfully.")
+        else:
+            print(f"Plugin {plugin_name} is not loaded.")
+
+    def get_available_commands(self):
+        return self.available_commands
+
+    def is_command_available(self, command_name):
+        return command_name in self.available_commands
+
+    def execute_command(self, command_name, *args, **kwargs):
+        if self.is_command_available(command_name):
+            for plugin_name, plugin_data in self.loaded_plugins.items():
+                plugin_commands = plugin_data.get('commands', {})
+                if command_name in plugin_commands:
+                    function_name = plugin_commands[command_name]
+                    function_to_call = getattr(plugin_data['instance'], function_name, None)
+                    if callable(function_to_call):
+                        function_to_call(*args, **kwargs)
+                    else:
+                        print(f"Function {function_name} not found in plugin {plugin_name}.")
+                    return
+            print(f"Command {command_name} not found in any loaded plugins.")
+        else:
+            print(f"Command {command_name} is not available.")
+
+    def verify_plugin_hash(self, plugin_data):
+        script = plugin_data.get('script', '').encode('utf-8')
+        calculated_hash = hashlib.sha256(script).hexdigest()
+        return calculated_hash == plugin_data.get('hash', '')
+
+    def save_plugin_locally(self, plugin_name, plugin_data):
+        if not os.path.exists(self.plugin_directory):
+            os.makedirs(self.plugin_directory)
+
+        # Save JSON data
+        json_file_path = os.path.join(self.plugin_directory, f"{plugin_name}.json")
+        with open(json_file_path, 'w') as json_file:
+            json.dump(plugin_data, json_file)
+
+        # Save Python script
+        script_file_path = os.path.join(self.plugin_directory, f"{plugin_name}.py")
+        with open(script_file_path, 'w') as script_file:
+            script_file.write(plugin_data.get('script', ''))
+
+    def import_plugin(self, plugin_name):
+        try:
+            module_name = os.path.splitext(plugin_name)[0]
+            spec = importlib.util.spec_from_file_location(module_name, os.path.join(self.plugin_directory, f"{plugin_name}.json"))
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+            # Store the instance of the plugin in the loaded_plugins dictionary
+            module.instance = module.Plugin()
+            return module
+        except Exception as e:
+            print(f"Error importing plugin {plugin_name}: {e}")
+            return None
+
+    def update_available_commands(self, plugin_data):
+        commands = plugin_data.get('commands', {}).keys()
+        self.available_commands.update(commands)
+
+# Example usage:
+if __name__ == "__main__":
+    plugin_manager = PluginManager()
+
+    # Load plugins based on available commands
+    plugin_list = ["NMAP Plugin", "Another Plugin"]
+    plugin_manager.sync_plugins(plugin_list)
+
+    # Get available commands
+    commands = plugin_manager.get_available_commands()
+    print("Available commands:", commands)
+
+    # Execute a command
+    command_to_execute = "COMMAND_NAME"
+    plugin_manager.execute_command(command_to_execute)
