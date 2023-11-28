@@ -33,11 +33,11 @@ jobs:
       matrix:
         include:
           - os: windows-latest
-            output: RBSAgent.exe
+            output: RBSAgent-windows
           - os: ubuntu-latest
-            output: RBSAgent
+            output: RBSAgent-linux
           - os: macos-latest
-            output: RBSAgent.app
+            output: RBSAgent-mac
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -50,40 +50,24 @@ jobs:
           upload_exe_with_name: ${{matrix.output}}  # Adjust the desired artifact name
           options: --onefile, --name "RBSAgent", --windowed
   upload-release-assets:
+    permissions: write-all
     runs-on: ubuntu-latest
     needs: [pyinstaller-build]
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2 
       - uses: actions/download-artifact@v3
-      - name: Zip MacOS output
-        run: zip -r9 RBSAgent.app RBSAgent.app/RBSAgent.app
       - name: Display structure of downloaded files
         run: ls -alR
-      - name: Upload Release Asset Windows
-        uses: actions/upload-release-asset@v1.0.1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Zip MacOS Build
+        run: cd RBSAgent-mac && zip -r9 RBSAgent RBSAgent.app
+      - name: Move linux files
+        run: |
+          mv RBSAgent-linux/RBSAgent RBSAgent
+          mv RBSAgent-mac/RBSAgent.zip RBSAgent.app.zip
+          mv RBSAgent-windows/RBSAgent.exe RBSAgent.exe
+          rm -rf RBSAgent-*
+
+      - uses: shogo82148/actions-upload-release-asset@v1
         with:
-          upload_url: ${{ github.event.release.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
-          asset_path: ./RBSAgent.exe/RBSAgent.exe
-          asset_name: RBSAgent.exe
-          asset_content_type: application/vnd.microsoft.portable-executable
-      - name: Upload Release Asset Linux
-        uses: actions/upload-release-asset@v1.0.1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ github.event.release.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
-          asset_path: ./RBSAgent/RBSAgent
-          asset_name: RBSAgent
-          asset_content_type: application/x-executable
-      - name: Upload Release Asset Mac
-        uses: actions/upload-release-asset@v1.0.1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ github.event.release.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
-          asset_path: ./RBSAgent.app.zip
-          asset_name: RBSAgent
-          asset_content_type: application/zip
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./RBSAgent*
+          overwrite: true
