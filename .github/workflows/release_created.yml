@@ -50,6 +50,7 @@ jobs:
           upload_exe_with_name: ${{matrix.output}}  # Adjust the desired artifact name
           options: --onefile, --name "RBSAgent", --windowed
   upload-release-assets:
+    permissions: write-all
     runs-on: ubuntu-latest
     needs: [pyinstaller-build]
     steps:
@@ -57,7 +58,7 @@ jobs:
       - name: Display structure of downloaded files
         run: ls -alR
       - name: Zip MacOS output
-        run: zip -r9 RBSAgent RBSAgent.app/
+        run: zip -r9 RBSAgent RBSAgent.app/ && mv RBSAgent.zip RBSAgent.app.zip
       - name: Display structure of downloaded files
         run: ls -alR
       - name: Upload Release Asset Windows
