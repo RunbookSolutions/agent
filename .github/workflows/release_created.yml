@@ -57,7 +57,7 @@ jobs:
       - name: Display structure of downloaded files
         run: ls -alR
       - name: Zip MacOS output
-        run: zip -r9 RBSAgent.app
+        run: zip -r9 RBSAgent RBSAgent.app/
       - name: Display structure of downloaded files
         run: ls -alR
       - name: Upload Release Asset Windows
