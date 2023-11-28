@@ -6,6 +6,7 @@ This codebase comprises the core of the Agent for RunbookSolutions.
 - [Installation](#installation)
   - [Prebuilt Docker Image](#prebuilt-docker-image)
   - [Extending the Default Image](#extending-the-default-image)
+  - [From Binary](#from-binary)
   - [From Source](#from-source)
 - [Configuration](#configuration)
   - [`config.ini` Parameters](#configini-parameters)
@@ -84,6 +85,11 @@ Build and run the customized Docker image:
 ```sh
 docker build . --tag YOUR_NAME_OR_COMPANY/agent:latest
 
+# Create necessary directories
+mkdir agent
+cd agent
+mkdir plugins stores kerberos
+wget https://raw.githubusercontent.com/RunbookSolutions/agent/production/config.ini
 docker run \
     --name RunbookSolutions_Agent \
     -v $(pwd)/config.ini:/app/config.ini \
@@ -96,6 +102,39 @@ docker run \
     YOUR_NAME_OR_COMPANY/agent:latest
 ```
 
+### From Binary
+If you prefer a simpler installation process than Docker, you can use the binary distribution of the Runbook Solutions Agent. Below are the steps for installation on Linux, but you can adapt the procedure for either Linux or macOS.
+
+Binary Links:
+- **Linux**: `https://github.com/RunbookSolutions/agent/releases/latest/RBSAgent`
+- **Windows**: `https://github.com/RunbookSolutions/agent/releases/latest/RBSAgent.exe`
+- **Mac**: `https://github.com/RunbookSolutions/agent/releases/latest/RBSAgent.app.zip`
+
+1) CreateNecessary Directories
+    ```sh
+    # Create the necessary directories
+    mkdir agent
+    cd agent
+    mkdir plugins stores kerberos
+    ```
+1) Download Configuration File
+    ```sh
+    # Download the default configuration file
+    wget https://raw.githubusercontent.com/RunbookSolutions/agent/production/config.ini
+    ```
+1) Download and run the binary (linux)
+    ```sh
+    # Download the Runbook Solutions Agent binary for Linux
+    wget https://github.com/RunbookSolutions/agent/releases/latest/RBSAgent
+
+    # Make the binary executable
+    chmod +x ./RBSAgent
+
+    # Run the agent
+    ./RBSAgent
+    ```
+
+> **Note:** The mac client has not been thoroughly tested. Use it at your discretion, and consider checking for updates or community feedback on its compatibility and stability.
 
 ### From Source
 If you prefer building from the source code, execute the following commands:
@@ -103,7 +142,12 @@ If you prefer building from the source code, execute the following commands:
 ```sh
 git clone https://github.com/RunbookSolutions/agent.git
 cd agent
-./run
+pip install -r requirements.txt
+python app.py
+
+# Package
+pip install pyinstaller
+pyinstaller --one-file app.py
 ```
 
 Ensure you have the necessary dependencies installed before running the build.
