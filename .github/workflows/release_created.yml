@@ -57,6 +57,10 @@ jobs:
       - uses: actions/download-artifact@v3
       - name: Display structure of downloaded files
         run: ls -alR
+      - name: Zip MacOS Build
+        run: cd RBSAgent-mac && zip -r9 RBSAgent RBSAgent.app
+      - name: Display structure of downloaded files
+        run: ls -alR
       # - name: Zip MacOS output
       #   run: |
       #     zip -r9 RBSAgent RBSAgent.app/
@@ -66,11 +70,11 @@ jobs:
       # - name: Display structure of downloaded files
       #   run: ls -alR
 
-      # - uses: shogo82148/actions-upload-release-asset@v1
-      #   with:
-      #     upload_url: ${{ github.event.release.upload_url }}
-      #     asset_path: ./RBSAgent*
-      #     overwrite: true
+      - uses: shogo82148/actions-upload-release-asset@v1
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./RBSAgent.*
+          overwrite: true
 
       # - name: Upload Release Asset Windows
       #   uses: actions/upload-release-asset@v1.0.1
