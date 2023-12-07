@@ -31,7 +31,7 @@ class PluginManager:
 
         logging.debug(f"Expected Hash: {plugin_definition.get('hash')}")
         logging.debug(f"JSON Hash: {json_hash}")
-        logging.debug(f"JSON Hash: {script_hash}")
+        logging.debug(f"File Hash: {script_hash}")
 
         if not json_hash == plugin_definition.get('hash', ''):
             logging.critical("JSON Hash mismatch")
@@ -131,8 +131,14 @@ class PluginManager:
             spec = importlib.util.spec_from_file_location("Plugin", script_file_path)
             module = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(module)
-            # Store the instance of the plugin in the loaded_plugins dictionary
-            return module.Plugin()
+
+            # Check if the Plugin class requires the 'api' parameter
+            if 'api' in inspect.getfullargspec(module.Plugin.__init__).args:
+                # Pass the 'api' parameter if required
+                return module.Plugin(self.api)
+            else:
+                # Instantiate the Plugin without the 'api' parameter
+                return module.Plugin()
         except Exception as e:
             print(f"Error importing plugin {pluginID}: {e}")
             return None
