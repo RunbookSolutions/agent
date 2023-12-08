@@ -25,7 +25,7 @@ class Agent:
             enabled=self.agentConfig.get('auth')
         )
         self.api = API(auth=self.auth, url=self.agentConfig.get('server_url'))
-        self.pluginManager = PluginManager(self.api)
+        self.pluginManager = PluginManager(self.api, self.agentConfig.get('force_redownload', False))
         self.queue = Queue(num_threads, self.pluginManager)
         self.schedule = Schedule(self.queue)
 
@@ -46,8 +46,15 @@ class Agent:
             self.agentDetails = self.api.getAgentDetails()
             self.pluginManager.syncPlugins(self.agentDetails.plugins)
 
-            tasks = self.api.getAgentTasks().getTasks()
-            for task in tasks:
+            tasks_from_api = self.api.getAgentTasks().getTasks()
+            task_ids_from_api = [task.id for task in tasks_from_api]
+
+            # Remove tasks from the schedule that are not in the API response
+            for task, _ in self.schedule.tasks.copy():
+                if task.id not in task_ids_from_api:
+                    self.schedule.remove_task(task.id)
+
+            for task in tasks_from_api:
                 if task.shouldSchedule():
                     self.schedule.add_task(task=task, cron_expression=task.cron)
                 else:

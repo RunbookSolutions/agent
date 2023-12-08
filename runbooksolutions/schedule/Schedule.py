@@ -20,6 +20,13 @@ class Schedule:
         else:
             logging.warning("Task already Scheduled")
 
+    def remove_task(self, task_id: str) -> None:
+        for i, (task, _) in enumerate(self.tasks):
+            if task.id == task_id:
+                logging.debug(f"Removing Task with ID {task_id} from schedule")
+                del self.tasks[i]
+                break
+
     async def start(self) -> None:
         logging.debug("Schedule Started")
         while True:
