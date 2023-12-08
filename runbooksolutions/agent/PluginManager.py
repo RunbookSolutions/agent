@@ -6,15 +6,18 @@ import logging
 import os
 import importlib
 import hashlib
+import inspect
 
 class PluginManager:
     plugin_directory: str = "plugins"
     plugins: dict = dict()
     loadedCommands: dict = dict()
     api: API = None
+    force_redownload: bool = False
 
-    def __init__(self, api: API) -> None:
+    def __init__(self, api: API, force_redownload: bool = False) -> None:
         self.api = api
+        self.force_redownload = force_redownload
 
     def verify_plugin_hash(self, pluginID: str) -> bool:
         json_file_path = os.path.join(self.plugin_directory, f"{pluginID}.json")
@@ -31,7 +34,7 @@ class PluginManager:
 
         logging.debug(f"Expected Hash: {plugin_definition.get('hash')}")
         logging.debug(f"JSON Hash: {json_hash}")
-        logging.debug(f"JSON Hash: {script_hash}")
+        logging.debug(f"File Hash: {script_hash}")
 
         if not json_hash == plugin_definition.get('hash', ''):
             logging.critical("JSON Hash mismatch")
@@ -64,7 +67,6 @@ class PluginManager:
         else:
             logging.warning(f"Plugin {pluginID} not found in loaded plugins.")
 
-        # TODO: Remove the plugin files from the file system
         json_file_path = os.path.join(self.plugin_directory, f"{pluginID}.json")
         with open(json_file_path, 'r') as json_file:
             plugin_definition = json.load(json_file)
@@ -72,11 +74,39 @@ class PluginManager:
         for command in plugin_definition.get('commands', []).keys():
             self.loadedCommands.pop(command)
 
+        self.removePluginFiles(pluginID)
+
+    def removePluginFiles(self, pluginID: str) -> None:
+        # Remove the plugin files from the file system
+        json_file_path = os.path.join(self.plugin_directory, f"{pluginID}.json")
+        script_file_path = os.path.join(self.plugin_directory, f"{pluginID}.py")
+
+        if self.force_redownload:
+            # Delete the files only if force_redownload is True
+            if os.path.exists(json_file_path):
+                os.remove(json_file_path)
+                logging.debug(f"Deleted JSON file: {json_file_path}")
+            else:
+                logging.warning(f"JSON file not found: {json_file_path}")
+
+            if os.path.exists(script_file_path):
+                os.remove(script_file_path)
+                logging.debug(f"Deleted Python file: {script_file_path}")
+            else:
+                logging.warning(f"Python file not found: {script_file_path}")
+
     def syncPlugins(self, plugins: list) -> None:
         logging.debug(f"Syncing Plugins. Loaded Plugins: {list(self.plugins.keys())} Requested Plugins: {plugins}")
-        for pluginID in self.plugins.keys():
+
+        # Create a copy of the keys to avoid dictionary size change during iteration
+        loaded_plugins_keys = list(self.plugins.keys())
+
+        for pluginID in loaded_plugins_keys:
             if pluginID not in plugins:
                 logging.debug("Removing Plugin")
+                self.removePlugin(pluginID)
+            elif self.force_redownload:
+                logging.debug("Removing Plugging due to Forced Redownload")
                 self.removePlugin(pluginID)
             else:
                 logging.debug("Plugin Still Required.")
@@ -88,7 +118,12 @@ class PluginManager:
             else:
                 logging.debug("Plugin Already Loaded")
 
+
     def pluginIsLocal(self, pluginID: str) -> bool:
+        if self.force_redownload:
+            self.removePluginFiles(pluginID)
+            return False
+
         if not os.path.exists(os.path.join(self.plugin_directory, f"{pluginID}.json")):
             logging.debug("Plugin JSON Not Local")
             return False
@@ -131,8 +166,14 @@ class PluginManager:
             spec = importlib.util.spec_from_file_location("Plugin", script_file_path)
             module = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(module)
-            # Store the instance of the plugin in the loaded_plugins dictionary
-            return module.Plugin()
+
+            # Check if the Plugin class requires the 'api' parameter
+            if 'api' in inspect.getfullargspec(module.Plugin.__init__).args:
+                # Pass the 'api' parameter if required
+                return module.Plugin(self.api)
+            else:
+                # Instantiate the Plugin without the 'api' parameter
+                return module.Plugin()
         except Exception as e:
             print(f"Error importing plugin {pluginID}: {e}")
             return None
