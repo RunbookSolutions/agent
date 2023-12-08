@@ -8,7 +8,7 @@ RUN apt-get update && \
 # Set the working directory to /app
 WORKDIR /app
 
-RUN mkdir plugins,stores
+RUN mkdir /app/plugins /app/stores
 
 COPY _docker/start.sh /start.sh
 RUN chmod +x /start.sh
