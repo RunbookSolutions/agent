@@ -1,0 +1,5 @@
+nmap
+gcc
+libkrb5-dev
+libssl-dev
+krb5-user 

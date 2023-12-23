@@ -1,7 +1,1 @@
-requests
-cryptography
-colorlog
 croniter
-python-nmap
-pyinstaller
-pytest

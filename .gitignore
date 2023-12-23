@@ -1,9 +1,5 @@
-kerberos
-run
 OLD
-hosts
-test.py
+.coverage
+.pytest_cache
+htmlcov
 __pycache__
-app.spec
-build
-dist

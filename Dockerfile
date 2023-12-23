@@ -1,26 +1,23 @@
 # Use an official Python runtime as a parent image
 FROM python:latest
 
-# Install Required System Tools
-RUN apt-get update && \
-    apt-get install nmap gcc libkrb5-dev libssl-dev krb5-user -y
-
 # Set the working directory to /app
 WORKDIR /app
 
-RUN mkdir /app/plugins /app/stores
+# Copy the package list file into the container
+COPY docker-packages.txt .
 
-COPY _docker/start.sh /start.sh
-RUN chmod +x /start.sh
+# Install packages using the package list
+RUN apt-get update && \
+    xargs -a docker-packages.txt apt-get install -y && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-# Copy the current directory contents into the container at /app
-COPY requirements.txt /app
-
-# Install any needed packages specified in requirements.txt
+COPY requirements.txt .
 RUN pip install -r requirements.txt
 
-COPY app.py /app
-COPY runbooksolutions /app/runbooksolutions
+# Copy the current directory contents into the container at /app
+COPY ./src /app
 
 # Define the command to run your application
-CMD [ "/start.sh" ]
+CMD [ "python", "/app/main.py" ]

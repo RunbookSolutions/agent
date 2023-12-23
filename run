@@ -1,7 +1,0 @@
-docker run \
-    -v ./config.ini:/app/config.ini \
-    -v ./plugins:/app/plugins \
-    -v ./stores:/app/stores \
-    -v $(pwd)/kerberos/krb5.conf:/etc/krb5.conf \
-    -v $(pwd)/kerberos:/keytabs \
-    -it $(docker build -q .)
